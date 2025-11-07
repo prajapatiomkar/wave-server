@@ -1,0 +1,75 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Build output
+bin/
+build/
+dist/
+out/
+*.out
+
+# Go coverage files
+*.cover
+*.cov
+coverage.txt
+
+# Go workspace and cache directories
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.old
+
+# Go modules and dependency directories
+vendor/
+
+# If you're using go.work
+go.work
+go.work.sum
+
+# IDEs and editors
+# VS Code
+.vscode/
+
+# JetBrains (GoLand)
+.idea/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Emacs / Vim
+*~
+\#*\#
+.\#*
+*.un~
+*.sw?
+
+# macOS / Linux / Windows system files
+.DS_Store
+Thumbs.db
+
+# Test data / temp files
+tmp/
+temp/
+*.tmp
+*.test
+
+# GoReleaser artifacts
+dist/
+release/
+artifacts/
+
+# Docker
+*.tar
+*.img
+
+# Local environment
+.env
+.env.*
