@@ -39,6 +39,8 @@ func main() {
 		AllowCredentials: true,
 		AllowWebSockets:  true,
 	}
+	log.Println("FRONTEND_URL:", os.Getenv("FRONTEND_URL"))
+
 	router.Use(cors.New(corsConfig))
 
 	// Initialize repositories
