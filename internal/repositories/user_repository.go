@@ -34,7 +34,3 @@ func (r *UserRepository) FindByID(id uint) (*models.User, error) {
 	err := r.db.First(&user, id).Error
 	return &user, err
 }
-
-func (r *UserRepository) UpdateOnlineStatus(userID uint, isOnline bool) error {
-	return r.db.Model(&models.User{}).Where("id = ?", userID).Update("is_online", isOnline).Error
-}

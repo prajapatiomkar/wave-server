@@ -37,7 +37,6 @@ type AuthResponse struct {
 }
 
 func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
-	// Check if user exists
 	if _, err := s.userRepo.FindByEmail(req.Email); err == nil {
 		return nil, errors.New("email already registered")
 	}
@@ -46,13 +45,11 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		return nil, errors.New("username already taken")
 	}
 
-	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, errors.New("failed to hash password")
 	}
 
-	// Create user
 	user := &models.User{
 		Username: req.Username,
 		Email:    req.Email,
@@ -64,7 +61,6 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 		return nil, errors.New("failed to create user")
 	}
 
-	// Generate token
 	token, err := s.generateToken(user.ID)
 	if err != nil {
 		return nil, errors.New("failed to generate token")
@@ -77,18 +73,15 @@ func (s *AuthService) Register(req *RegisterRequest) (*AuthResponse, error) {
 }
 
 func (s *AuthService) Login(req *LoginRequest) (*AuthResponse, error) {
-	// Find user
 	user, err := s.userRepo.FindByEmail(req.Email)
 	if err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 
-	// Compare password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 
-	// Generate token
 	token, err := s.generateToken(user.ID)
 	if err != nil {
 		return nil, errors.New("failed to generate token")

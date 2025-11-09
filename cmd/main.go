@@ -12,6 +12,7 @@ import (
 	"github.com/prajapatiomkar/wave-server/internal/middleware"
 	"github.com/prajapatiomkar/wave-server/internal/repositories"
 	"github.com/prajapatiomkar/wave-server/internal/services"
+	"github.com/prajapatiomkar/wave-server/internal/websocket"
 )
 
 func main() {
@@ -28,29 +29,35 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	// Initialize repositories
+	userRepo := repositories.NewUserRepository(config.GetDB())
+	messageRepo := repositories.NewMessageRepository(config.GetDB())
+
+	// Initialize services
+	authService := services.NewAuthService(userRepo)
+	messageService := services.NewMessageService(messageRepo, userRepo)
+
+	// Initialize WebSocket hub
+	hub := websocket.NewHub(messageService)
+	go hub.Run()
+
+	// Initialize handlers
+	authHandler := handlers.NewAuthHandler(authService)
+	wsHandler := handlers.NewWebSocketHandler(hub)
+	messageHandler := handlers.NewMessageHandler(messageService)
+
 	// Initialize Gin router
 	router := gin.Default()
 
 	// Configure CORS
 	corsConfig := cors.Config{
-		AllowOrigins:     []string{os.Getenv("FRONTEND_URL")},
+		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
 		AllowWebSockets:  true,
 	}
-	log.Println("FRONTEND_URL:", os.Getenv("FRONTEND_URL"))
-
 	router.Use(cors.New(corsConfig))
-
-	// Initialize repositories
-	userRepo := repositories.NewUserRepository(config.GetDB())
-
-	// Initialize services
-	authService := services.NewAuthService(userRepo)
-
-	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(authService)
 
 	// Health check
 	router.GET("/health", func(c *gin.Context) {
@@ -67,11 +74,15 @@ func main() {
 			auth.POST("/login", authHandler.Login)
 		}
 
+		// WebSocket route (handles auth internally)
+		api.GET("/ws", wsHandler.HandleConnection)
+
 		// Protected routes
 		protected := api.Group("")
 		protected.Use(middleware.AuthMiddleware())
 		{
 			protected.GET("/me", authHandler.GetMe)
+			protected.GET("/messages/:room_id", messageHandler.GetMessageHistory)
 		}
 	}
 
